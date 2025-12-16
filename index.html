@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Cricket Tournament Manager</title>
+<title>KAPL Season - 2</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
 <div class="container">
 
-<h1>🏆 Cricket Tournament Manager</h1>
+<h1>🏆 KAPL Season – 2</h1>
 
 <!-- MATCH SETUP -->
 <div class="card">
@@ -29,9 +30,9 @@
 <button onclick="startMatch()">Start Match</button>
 </div>
 
-<!-- LIVE SCORE -->
+<!-- SCORING -->
 <div class="card">
-<h2>Live Score (7 Overs)</h2>
+<h2>Live Scoring</h2>
 
 <select id="batsmanSelect"></select>
 
@@ -53,34 +54,67 @@
 </div>
 
 <button onclick="switchInnings()">Switch Innings</button>
-<button onclick="exportPDF()">Export Scorecard PDF</button>
+<button onclick="exportPDF()">Export PDF</button>
+</div>
+
+<!-- OVER TABLE -->
+<div class="card">
+<h2>Over-by-Over</h2>
+<table>
+<thead><tr><th>Over</th><th>Balls</th><th>Runs</th></tr></thead>
+<tbody id="overBallTable"></tbody>
+</table>
 </div>
 
 <!-- PLAYER SCORECARD -->
 <div class="card">
 <h2>Player Scorecard</h2>
 <table>
-<thead>
-<tr><th>Player</th><th>Runs</th><th>Balls</th><th>Out</th></tr>
-</thead>
+<thead><tr><th>Player</th><th>Runs</th><th>Balls</th><th>Out</th></tr></thead>
 <tbody id="playerTable"></tbody>
 </table>
 </div>
 
-<!-- GROUP TABLE -->
+<!-- LIVE SCOREBOARD -->
+<div class="card">
+<h2>📺 Live Scoreboard</h2>
+<div class="live-board">
+<div class="lb-title">KAPL Season – 2</div>
+<div class="lb-team" id="lbTeam"></div>
+<div class="lb-score" id="lbScore"></div>
+<div id="lbOvers"></div>
+<div id="lbRR"></div>
+<hr>
+<div id="lbStriker"></div>
+<div id="lbNonStriker"></div>
+<hr>
+<div id="lbLastOver"></div>
+</div>
+</div>
+
+<!-- POINTS -->
 <div class="card">
 <h2>Group Standings</h2>
 <table>
-<thead>
-<tr><th>Team</th><th>M</th><th>W</th><th>L</th><th>Pts</th><th>NRR</th></tr>
-</thead>
+<thead><tr><th>Team</th><th>M</th><th>W</th><th>L</th><th>Pts</th><th>NRR</th></tr></thead>
 <tbody id="pointsTable"></tbody>
 </table>
+</div>
+
+<!-- KNOCKOUT -->
+<div class="card">
+<h2>Knockouts</h2>
+<div id="knockout"></div>
+</div>
+
+<!-- MVP -->
+<div class="card">
+<h2>🏆 MVP</h2>
+<div id="mvp"></div>
 </div>
 
 </div>
 
 <script src="script.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>
