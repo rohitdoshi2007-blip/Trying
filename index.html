@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cricket Tournament Manager</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="container">
+
+<h1>🏆 Cricket Tournament Manager</h1>
+
+<!-- MATCH SETUP -->
+<div class="card">
+<h2>Match Setup</h2>
+<label>Group</label>
+<select id="groupSelect">
+<option value="A">Group A</option>
+<option value="B">Group B</option>
+</select>
+
+<label>Team 1</label>
+<select id="team1"></select>
+
+<label>Team 2</label>
+<select id="team2"></select>
+
+<button onclick="startMatch()">Start Match</button>
+</div>
+
+<!-- LIVE SCORE -->
+<div class="card">
+<h2>Live Score (7 Overs)</h2>
+
+<select id="batsmanSelect"></select>
+
+<div class="big" id="score">0/0</div>
+<div id="balls">Balls: 0 / 42</div>
+
+<div class="controls">
+<button onclick="addRuns(-2)" class="neg">-2</button>
+<button onclick="addRuns(-1)" class="neg">-1</button>
+<button onclick="addRuns(0)" class="dot">0</button>
+
+<button onclick="addRuns(1)" class="run">1</button>
+<button onclick="addRuns(2)" class="run">2</button>
+<button onclick="addRuns(3)" class="run">3</button>
+
+<button onclick="addRuns(4)" class="boundary">4</button>
+<button onclick="addRuns(6)" class="boundary">6</button>
+<button onclick="wicket()" class="wkt">WKT</button>
+</div>
+
+<button onclick="switchInnings()">Switch Innings</button>
+<button onclick="exportPDF()">Export Scorecard PDF</button>
+</div>
+
+<!-- PLAYER SCORECARD -->
+<div class="card">
+<h2>Player Scorecard</h2>
+<table>
+<thead>
+<tr><th>Player</th><th>Runs</th><th>Balls</th><th>Out</th></tr>
+</thead>
+<tbody id="playerTable"></tbody>
+</table>
+</div>
+
+<!-- GROUP TABLE -->
+<div class="card">
+<h2>Group Standings</h2>
+<table>
+<thead>
+<tr><th>Team</th><th>M</th><th>W</th><th>L</th><th>Pts</th><th>NRR</th></tr>
+</thead>
+<tbody id="pointsTable"></tbody>
+</table>
+</div>
+
+</div>
+
+<script src="script.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</body>
+</html>
