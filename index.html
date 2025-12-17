@@ -2,118 +2,137 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>KAPL Season - 2</title>
+<title>KAPL Season – 2</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
-<div class="container">
 
-<h1>🏆 KAPL Season – 2</h1>
+<header>
+  <h1>🏆 KAPL Season – 2</h1>
+  <nav>
+    <button onclick="showPage('live')">Live</button>
+    <button onclick="showPage('rules')">Rules</button>
+    <button onclick="showPage('points')">Points</button>
+    <button onclick="showPage('graph')">Tournament</button>
+    <button onclick="adminLogin()">Admin</button>
+  </nav>
+</header>
 
-<!-- MATCH SETUP -->
-<div class="card">
+<!-- LIVE PAGE -->
+<section id="live" class="page active">
+
 <h2>Match Setup</h2>
-<label>Group</label>
-<select id="groupSelect">
-<option value="A">Group A</option>
-<option value="B">Group B</option>
-</select>
+<div class="setup">
+  <label>Group</label>
+  <select id="groupSelect">
+    <option value="">-- Select Group --</option>
+    <option value="A">Group A</option>
+    <option value="B">Group B</option>
+  </select>
 
-<label>Team 1</label>
-<select id="team1"></select>
+  <label>Team 1</label>
+  <select id="team1">
+    <option value="">-- Select Team 1 --</option>
+  </select>
 
-<label>Team 2</label>
-<select id="team2"></select>
+  <label>Team 2</label>
+  <select id="team2">
+    <option value="">-- Select Team 2 --</option>
+  </select>
 
-<button onclick="startMatch()">Start Match</button>
+  <button onclick="startMatch()">Start Match</button>
 </div>
 
-<!-- SCORING -->
-<div class="card">
-<h2>Live Scoring</h2>
+<hr>
 
-<select id="batsmanSelect"></select>
+<h2>🔴 Live Match</h2>
 
-<div class="big" id="score">0/0</div>
-<div id="balls">Balls: 0 / 42</div>
+<div class="live-box">
+  <div id="matchTitle">No match started</div>
+  <div id="score" class="big">0 / 0</div>
+  <div id="overs">Overs: 0.0</div>
+</div>
+
+<div class="ticker">
+  Last Balls: <span id="ticker">–</span>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" class="admin hidden">
+<h3>Admin Controls</h3>
 
 <div class="controls">
-<button onclick="addRuns(-2)" class="neg">-2</button>
-<button onclick="addRuns(-1)" class="neg">-1</button>
-<button onclick="addRuns(0)" class="dot">0</button>
-
-<button onclick="addRuns(1)" class="run">1</button>
-<button onclick="addRuns(2)" class="run">2</button>
-<button onclick="addRuns(3)" class="run">3</button>
-
-<button onclick="addRuns(4)" class="boundary">4</button>
-<button onclick="addRuns(6)" class="boundary">6</button>
-<button onclick="wicket()" class="wkt">WKT</button>
+  <button onclick="ball(1)">+1</button>
+  <button onclick="ball(4)">+4</button>
+  <button onclick="ball(6)">+6</button>
+  <button onclick="ball(-1)" class="neg">-1</button>
+  <button onclick="ball(-2)" class="neg">-2</button>
+  <button onclick="wide()">Wd</button>
+  <button onclick="noBall()">Nb</button>
+  <button onclick="wicket()">W</button>
 </div>
 
-<button onclick="switchInnings()">Switch Innings</button>
-<button onclick="exportPDF()">Export PDF</button>
+<button onclick="undoLastBall()">Undo Last Ball</button>
+<button onclick="changeTeam()">Change Batting Team</button>
 </div>
 
-<!-- OVER TABLE -->
-<div class="card">
-<h2>Over-by-Over</h2>
+<h3>Over-wise Score</h3>
 <table>
-<thead><tr><th>Over</th><th>Balls</th><th>Runs</th></tr></thead>
-<tbody id="overBallTable"></tbody>
+<thead>
+<tr><th>Over</th><th>Balls</th><th>Runs</th></tr>
+</thead>
+<tbody id="overTable"></tbody>
 </table>
-</div>
 
-<!-- PLAYER SCORECARD -->
-<div class="card">
-<h2>Player Scorecard</h2>
-<table>
-<thead><tr><th>Player</th><th>Runs</th><th>Balls</th><th>Out</th></tr></thead>
-<tbody id="playerTable"></tbody>
-</table>
-</div>
+</section>
 
-<!-- LIVE SCOREBOARD -->
-<div class="card">
-<h2>📺 Live Scoreboard</h2>
-<div class="live-board">
-<div class="lb-title">KAPL Season – 2</div>
-<div class="lb-team" id="lbTeam"></div>
-<div class="lb-score" id="lbScore"></div>
-<div id="lbOvers"></div>
-<div id="lbRR"></div>
-<hr>
-<div id="lbStriker"></div>
-<div id="lbNonStriker"></div>
-<hr>
-<div id="lbLastOver"></div>
-</div>
-</div>
+<!-- RULES -->
+<section id="rules" class="page">
+<h2>📜 Rules</h2>
+<ul>
+<li>+6, +4, +1 → Normal runs</li>
+<li>-1 → Penalty</li>
+<li>-2 → Major penalty</li>
+<li>Wide / No Ball → +1 (not a legal ball)</li>
+<li>7 overs per innings</li>
+</ul>
+</section>
 
 <!-- POINTS -->
-<div class="card">
-<h2>Group Standings</h2>
+<section id="points" class="page">
+<h2>📊 Points Table</h2>
 <table>
-<thead><tr><th>Team</th><th>M</th><th>W</th><th>L</th><th>Pts</th><th>NRR</th></tr></thead>
+<thead>
+<tr><th>Team</th><th>Matches</th><th>Total Runs</th></tr>
+</thead>
 <tbody id="pointsTable"></tbody>
 </table>
+</section>
+
+<!-- TOURNAMENT GRAPH -->
+<section id="graph" class="page">
+<h2>🏏 Tournament Structure</h2>
+
+<div class="graph">
+<div>
+<h3>Group A</h3>
+<ul><li>A1</li><li>A2</li><li>A3</li><li>A4</li></ul>
 </div>
 
-<!-- KNOCKOUT -->
-<div class="card">
-<h2>Knockouts</h2>
-<div id="knockout"></div>
+<div>
+<h3>Group B</h3>
+<ul><li>B1</li><li>B2</li><li>B3</li><li>B4</li></ul>
 </div>
 
-<!-- MVP -->
-<div class="card">
-<h2>🏆 MVP</h2>
-<div id="mvp"></div>
+<div>
+<h3>Knockouts</h3>
+<p>Semi 1: A1 vs B2</p>
+<p>Semi 2: B1 vs A2</p>
+<p><strong>Final</strong></p>
 </div>
-
 </div>
+</section>
 
 <script src="script.js"></script>
 </body>
