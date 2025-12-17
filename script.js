@@ -1,142 +1,184 @@
-const MAX_OVERS=7, BALLS_PER_OVER=6, MAX_BALLS=42, PLAYERS=8;
-
-function genPlayers(){
- let a=[];
- for(let i=1;i<=PLAYERS;i++)a.push({name:"Player "+i,runs:0,balls:0,out:false});
- return a;
+function showPage(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
 }
 
-function initStats(){
- return {m:0,w:0,l:0,pts:0,rf:0,bf:0,ra:0,ba:0};
-}
-
-const groups={
-A:[
- {name:"A1",stats:initStats(),players:genPlayers()},
- {name:"A2",stats:initStats(),players:genPlayers()},
- {name:"A3",stats:initStats(),players:genPlayers()},
- {name:"A4",stats:initStats(),players:genPlayers()}
-],
-B:[
- {name:"B1",stats:initStats(),players:genPlayers()},
- {name:"B2",stats:initStats(),players:genPlayers()},
- {name:"B3",stats:initStats(),players:genPlayers()},
- {name:"B4",stats:initStats(),players:genPlayers()}
-]
+/* GROUP DATA */
+const groupTeams={
+ A:["A1","A2","A3","A4"],
+ B:["B1","B2","B3","B4"]
 };
 
-let battingTeam,bowlingTeam,group;
-let innings={score:0,balls:0,wkts:0,overs:[],players:[],strike:0,nonStrike:1};
-let allPlayers=[];
+/* MATCH STATE */
+let score=0, balls=0, wickets=0;
+let ticker=[], history=[];
+let overData=[];
+let battingTeam="", bowlingTeam="";
 
-const groupSel=document.getElementById("groupSelect");
-const t1=document.getElementById("team1");
-const t2=document.getElementById("team2");
+/* POINTS */
+let teams=[
+ {name:"A1",matches:0,runs:0},
+ {name:"A2",matches:0,runs:0},
+ {name:"A3",matches:0,runs:0},
+ {name:"A4",matches:0,runs:0},
+ {name:"B1",matches:0,runs:0},
+ {name:"B2",matches:0,runs:0},
+ {name:"B3",matches:0,runs:0},
+ {name:"B4",matches:0,runs:0}
+];
 
-groupSel.onchange=populateTeams;
-populateTeams();
+/* POPULATE TEAMS */
+document.getElementById("groupSelect").addEventListener("change",function(){
+ const g=this.value;
+ const t1=document.getElementById("team1");
+ const t2=document.getElementById("team2");
 
-function populateTeams(){
- t1.innerHTML=t2.innerHTML="";
- groups[groupSel.value].forEach((t,i)=>{
-  t1.innerHTML+=`<option value="${i}">${t.name}</option>`;
-  t2.innerHTML+=`<option value="${i}">${t.name}</option>`;
+ t1.innerHTML=`<option value="">-- Select Team 1 --</option>`;
+ t2.innerHTML=`<option value="">-- Select Team 2 --</option>`;
+
+ if(!g) return;
+ groupTeams[g].forEach(t=>{
+  t1.innerHTML+=`<option value="${t}">${t}</option>`;
+  t2.innerHTML+=`<option value="${t}">${t}</option>`;
+ });
+});
+
+/* ADMIN */
+function adminLogin(){
+ const pwd=prompt("Enter Admin Password");
+ if(pwd==="kapl"){
+  document.getElementById("adminPanel").classList.remove("hidden");
+ }else alert("Wrong password");
+}
+
+/* START MATCH */
+function startMatch(){
+ const g=document.getElementById("groupSelect").value;
+ const t1=document.getElementById("team1").value;
+ const t2=document.getElementById("team2").value;
+
+ if(!g) return alert("Select group first");
+ if(!t1 || !t2) return alert("Select both teams");
+ if(t1===t2) return alert("Teams must be different");
+
+ battingTeam=t1;
+ bowlingTeam=t2;
+
+ resetMatch();
+ document.getElementById("matchTitle").innerText=
+  `${t1} vs ${t2} (Group ${g})`;
+}
+
+/* RESET MATCH */
+function resetMatch(){
+ score=0; balls=0; wickets=0;
+ ticker=[]; history=[]; overData=[];
+ updateUI();
+}
+
+/* SAVE STATE (LAST BALL ONLY) */
+function saveState(){
+ history.push({
+  score,balls,wickets,
+  ticker:[...ticker],
+  overData:JSON.stringify(overData)
  });
 }
 
-function startMatch(){
- if(t1.value===t2.value)return alert("Select different teams");
- group=groupSel.value;
- battingTeam=groups[group][t1.value];
- bowlingTeam=groups[group][t2.value];
- startInnings();
-}
-
-function startInnings(){
- innings={score:0,balls:0,wkts:0,overs:[],players:JSON.parse(JSON.stringify(battingTeam.players)),strike:0,nonStrike:1};
- loadBatsmen();
+/* EVENTS */
+function ball(r){
+ saveState();
+ score+=r; balls++;
+ updateOver(r);
+ addTicker(r);
  updateUI();
 }
 
-function addRuns(r){
- if(innings.balls>=MAX_BALLS)return;
- let p=innings.players[innings.strike];
- p.runs+=r;p.balls++;
- innings.score+=r;innings.balls++;
+function wide(){
+ saveState();
+ score++; updateOver("Wd"); addTicker("Wd"); updateUI();
+}
 
- let o=Math.floor((innings.balls-1)/6);
- if(!innings.overs[o])innings.overs[o]={balls:[],runs:0};
- innings.overs[o].balls.push(r);
- innings.overs[o].runs+=r;
-
- if(Math.abs(r)%2===1)[innings.strike,innings.nonStrike]=[innings.nonStrike,innings.strike];
- if(innings.balls%6===0)[innings.strike,innings.nonStrike]=[innings.nonStrike,innings.strike];
-
- updateUI();
+function noBall(){
+ saveState();
+ score++; updateOver("Nb"); addTicker("Nb"); updateUI();
 }
 
 function wicket(){
- if(innings.balls>=MAX_BALLS)return;
- innings.players[innings.strike].out=true;
- innings.players[innings.strike].balls++;
- allPlayers.push(innings.players[innings.strike]);
- innings.wkts++;innings.balls++;
- innings.strike=getNext();
+ saveState();
+ wickets++; balls++;
+ updateOver("W"); addTicker("W"); updateUI();
+}
+
+/* UNDO */
+function undoLastBall(){
+ if(!history.length) return;
+ let p=history.pop();
+ score=p.score; balls=p.balls; wickets=p.wickets;
+ ticker=p.ticker; overData=JSON.parse(p.overData);
  updateUI();
 }
 
-function getNext(){
- for(let i=0;i<innings.players.length;i++)
-  if(!innings.players[i].out && innings.players[i].balls===0)return i;
- return innings.strike;
-}
-
-function switchInnings(){
- saveStats();
+/* CHANGE TEAM */
+function changeTeam(){
  [battingTeam,bowlingTeam]=[bowlingTeam,battingTeam];
- startInnings();
+ document.getElementById("matchTitle").innerText=
+  `${battingTeam} batting`;
 }
 
-function saveStats(){
- battingTeam.stats.rf+=innings.score;
- battingTeam.stats.bf+=innings.balls;
- bowlingTeam.stats.ra+=innings.score;
- bowlingTeam.stats.ba+=innings.balls;
+/* OVER LOGIC */
+function updateOver(val){
+ let o=Math.floor((val==="Wd"||val==="Nb"?balls:balls-1)/6);
+ if(!overData[o]) overData[o]={balls:[],runs:0};
+ overData[o].balls.push(val);
+ if(typeof val==="number") overData[o].runs+=val;
+ else overData[o].runs+=1;
 }
 
-function loadBatsmen(){
- let s=document.getElementById("batsmanSelect");
- s.innerHTML="";
- innings.players.forEach((p,i)=>!p.out&&(s.innerHTML+=`<option value="${i}">${p.name}</option>`));
- s.onchange=()=>innings.strike=parseInt(s.value);
+/* TICKER */
+function addTicker(e){
+ ticker.unshift(e);
+ if(ticker.length>6) ticker.pop();
 }
 
+/* UI */
 function updateUI(){
- document.getElementById("score").innerText=`${innings.score}/${innings.wkts}`;
- document.getElementById("balls").innerText=`Balls: ${innings.balls}/42`;
- renderOvers();renderPlayers();renderLive();
+ document.getElementById("score").innerText=`${score} / ${wickets}`;
+ document.getElementById("overs").innerText=
+  `Overs: ${Math.floor(balls/6)}.${balls%6}`;
+ document.getElementById("ticker").innerText=
+  ticker.length?ticker.join(" "):"–";
+ renderOvers();
 }
 
+/* RENDER OVERS */
 function renderOvers(){
- let tb=document.getElementById("overBallTable");tb.innerHTML="";
- innings.overs.forEach((o,i)=>tb.innerHTML+=`<tr><td>${i+1}</td><td>${o.balls.join(" ")}</td><td>${o.runs}</td></tr>`);
+ let tb=document.getElementById("overTable");
+ tb.innerHTML="";
+ overData.forEach((o,i)=>{
+  tb.innerHTML+=`
+   <tr>
+    <td>${i+1}</td>
+    <td>${o.balls.join(" ")}</td>
+    <td>${o.runs}</td>
+   </tr>`;
+ });
 }
 
-function renderPlayers(){
- let tb=document.getElementById("playerTable");tb.innerHTML="";
- innings.players.forEach(p=>tb.innerHTML+=`<tr><td>${p.name}</td><td>${p.runs}</td><td>${p.balls}</td><td>${p.out?"Yes":"No"}</td></tr>`);
+/* POINTS */
+function renderPoints(){
+ let tb=document.getElementById("pointsTable");
+ tb.innerHTML="";
+ teams.forEach(t=>{
+  let c=t.runs<0?"negative":"";
+  tb.innerHTML+=`
+   <tr>
+    <td>${t.name}</td>
+    <td>${t.matches}</td>
+    <td class="${c}">${t.runs}</td>
+   </tr>`;
+ });
 }
 
-function renderLive(){
- let o=Math.floor(innings.balls/6)+"."+innings.balls%6;
- let rr=innings.balls? (innings.score/(innings.balls/6)).toFixed(2):"0.00";
- document.getElementById("lbTeam").innerText=battingTeam.name;
- document.getElementById("lbScore").innerText=`${innings.score}/${innings.wkts}`;
- document.getElementById("lbOvers").innerText=`Overs: ${o}`;
- document.getElementById("lbRR").innerText=`CRR: ${rr}`;
- document.getElementById("lbLastOver").innerText=innings.overs.length?`Last Over: ${innings.overs[innings.overs.length-1].balls.join(" ")}`:"";
-}
-
-function exportPDF(){
- html2pdf().from(document.querySelector(".container")).save("KAPL_Scorecard.pdf");
-}
+renderPoints();
+updateUI();
